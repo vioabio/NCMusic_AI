@@ -200,6 +200,11 @@ ul {
     height: 100%;
     display: block;
     border: 1px solid #ccc;
+    transition: transform 0.3s, filter 0.3s;
+}
+
+.cover-warpper:hover img {
+    transform: scale(1.05);
 }
 
 .cover-warpper::after {

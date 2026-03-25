@@ -4,6 +4,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useUserStore } from './stores/user'
 import api from './api/index'
 
+
 //全局状态管理，路由跳转
 const userStore = useUserStore()
 const router = useRouter()
@@ -89,6 +90,23 @@ const handleClickSingerDetals =(id)=>{
 // 节流后的点击函数（1秒内只能点击一次）
 const handleSingerClickThrottled = throttle(handleClickSingerDetals, 1000)
 
+// 意见反馈
+import FeedbackModal from '../src/components/FeedbackModal.vue';
+
+const feedbackModalRef = ref(null);
+
+const handleOpenFeedback = () => {
+  feedbackModalRef.value.open();
+};
+
+// 客户端下载
+import DownloadModal from '../src/components/DownloadModal.vue'
+
+const downloadModalRef = ref(null);
+const handleOpenDownload = () => {
+  downloadModalRef.value.open();
+};
+
 onMounted(()=>{
   fetchHotSingers()
 })
@@ -156,12 +174,14 @@ onMounted(()=>{
     </aside>
     <aside class="right-sidebar">
       <!-- 创建右侧边栏：添加意见反馈和回到顶部 -->
-      <div class="right-sidebar-link">
+      <div class="right-sidebar-link" @click="handleOpenDownload">
         下载客户端
       </div>
-      <div class="right-sidebar-link">
+      <download-modal ref="downloadModalRef"></download-modal>
+      <div class="right-sidebar-link" @click="handleOpenFeedback">
         意见反馈
       </div>
+      <feedback-modal ref="feedbackModalRef"></feedback-modal>
       <div class="right-sidebar-link" @click="scrollToTop">
         回到顶部
       </div>
