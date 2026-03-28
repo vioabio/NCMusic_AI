@@ -2,7 +2,7 @@
 // 这部分处理网络封装
 import axios from "axios";
 
-const BASE_URL='http://localhost:3000'
+const BASE_URL='/api'
 
 // 创建实例对象
 const instance=axios.create(
