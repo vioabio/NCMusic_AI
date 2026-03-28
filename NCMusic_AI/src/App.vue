@@ -107,6 +107,7 @@ const handleOpenDownload = () => {
   downloadModalRef.value.open();
 };
 
+
 onMounted(()=>{
   fetchHotSingers()
 })
@@ -165,7 +166,7 @@ onMounted(()=>{
             @click="handleSingerClickThrottled(item.id)"
             >
             <span class="hotsinger-index">{{ index+1 }}</span>
-            <img :src="item.pic" :alt="歌手头像" class="hotsinger-pic">
+            <img :src="item.pic" alt="歌手头像" class="hotsinger-pic">
             <span class="hotsinger-name">{{ item.name }}</span>
             </li>
           </ul>
@@ -227,5 +228,4 @@ onMounted(()=>{
 
 <style scoped>
 @import './css/app.css';
-
 </style>

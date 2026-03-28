@@ -45,10 +45,10 @@ const formatDuration = (ms) => {
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
 }
 
-//歌曲播放,传递歌曲id
+//歌曲播放,传递歌曲id和歌单id
 const handlePlaySong=(id)=>{
     if(!id) return 
-    router.push({name:'musicplayer',query:{id}})
+    router.push({name:'musicplayer',query:{id,playlistId:playlistId.value}})
 }
 
 onMounted(()=>{
@@ -60,11 +60,26 @@ onMounted(()=>{
 <template>
     <div class="musiclist-page">
         <div class="musiclist-inner">
-            <h2 class="title">{{ playlistName }}</h2>
-            <div v-if="loading" class="tip">歌曲加载中......</div>
+            <h2 class="title">{{ playlistName || '加载中...' }}</h2>
+            <!-- 骨架屏状态 -->
+            <div v-if="loading" class="skeleton-container">
+                <div v-for="i in 20" :key="i" class="skeleton-item">
+                    <span class="skeleton-index">{{ i }}</span>
+                    <div class="skeleton-main">
+                        <div class="skeleton-name"></div>
+                        <div class="skeleton-artist"></div>
+                    </div>
+                    <div class="skeleton-extra">
+                        <div class="skeleton-album"></div>
+                        <div class="skeleton-duration"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- 空状态 -->
             <div v-else-if="!tracks.length" class="tip">暂无歌曲</div>
+            <!-- 实际数据列表 -->
             <ul v-else class="track-list">
-                <li 
+                <li
                 v-for="(track , index) in tracks"
                 class="track-item"
                 :key="track.id"
@@ -129,6 +144,77 @@ onMounted(()=>{
     font-size: 12px;
     color: #333;
     cursor: pointer;
+}
+
+/* 骨架屏样式 */
+.skeleton-container {
+    padding: 10px 0;
+}
+
+.skeleton-item {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    line-height: 30px;
+    padding: 0 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.skeleton-index {
+    width: 50px;
+    text-align: center;
+    color: #ccc;
+    font-size: 12px;
+}
+
+.skeleton-main {
+    flex: 1;
+    display: flex;
+    padding-right: 10px;
+    gap: 10px;
+}
+
+.skeleton-name,
+.skeleton-artist,
+.skeleton-album,
+.skeleton-duration {
+    height: 14px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    border-radius: 2px;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.skeleton-name {
+    flex: 1;
+}
+
+.skeleton-artist {
+    width: 120px;
+}
+
+.skeleton-extra {
+    width: 300px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.skeleton-album {
+    flex: 1;
+}
+
+.skeleton-duration {
+    width: 60px;
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
 }
 
 /* 隔行变色 (斑马纹) */

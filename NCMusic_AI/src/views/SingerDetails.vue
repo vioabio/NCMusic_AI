@@ -8,6 +8,7 @@ const singerId = computed(() => route.query.id)
 
 // 响应式数据
 const singerdetails = ref([])
+const singerFans = ref(0)
 const simSingers = ref([])
 const singersongs = ref([])
 const singerAlbums = ref([])
@@ -34,12 +35,18 @@ const fetchSingerDetails = async () => {
     }
 }
 
+const fetchSingerFans=async()=>{
+    const id = singerId.value
+    const res = await api.get('/artist/follow/count',{id})
+    singerFans.value=res.data.fansCnt
+}
+
 const fetchSimSingersId = async () => {
     const id = singerId.value
     try {
         const res = await api.get('/simi/artist', { id })
         if (res.artists) {
-            simSingers.value = res.artists.slice(0, 5).map((item) => ({
+            simSingers.value = res.artists.slice(0, 6).map((item) => ({
                 name: item.name,
                 pic: item.img1v1Url
             }))
@@ -107,6 +114,7 @@ const formatDuration = (ms) => {
 
 onMounted(() => {
     fetchSingerDetails()
+    fetchSingerFans()
     fetchSimSingersId()
     fetchSingerSongs()
     fetchSingerAlbums()
@@ -117,6 +125,7 @@ onMounted(() => {
 watch(singerId, (newId, oldId) => {
     if (newId && newId !== oldId) {
         fetchSingerDetails()
+        fetchSingerFans()
         fetchSimSingersId()
         fetchSingerSongs()
         fetchSingerAlbums()
@@ -135,7 +144,8 @@ watch(singerId, (newId, oldId) => {
                     <img :src="singerdetails[0].pic" class="singer-pic">
                     <div class="singer-info">
                         <h2 class="singer-name">{{ singerdetails[0].name }}</h2>
-                        <div class="singer-identify">{{ singerdetails[0].identify }}</div>
+                        <div class="singer-identify">身份：{{ singerdetails[0].identify }}</div>
+                        <div class="singer-fans">粉丝数量：{{ singerFans }}</div>
                         <div class="singer-briefDesc" :title="singerdetails[0].briefDesc">
                             {{ singerdetails[0].briefDesc }}
                         </div>
