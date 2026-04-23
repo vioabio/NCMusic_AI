@@ -2,6 +2,7 @@
 import api from '../api/index.js';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import LazyImage from '@/components/LazyImage.vue';
 
 // 推荐歌单
 const playlists = ref([])
@@ -91,7 +92,7 @@ onMounted(()=>{
                 @click="handlePlayListClick(item.id)"
                 >
                     <div class="cover-warpper">
-                        <img :src="item.cover" :alt="item.name">
+                        <LazyImage :src="item.cover" :alt="item.name" />
                     </div>
                     <div class="info">
                         <p class="name">{{item.name}}</p>
@@ -109,7 +110,7 @@ onMounted(()=>{
                 @click="handleMusicPlayer(item.id)"
                 >
                     <div class="songslist-cover">
-                        <img :src="item.cover" :alt="item.name">
+                        <LazyImage :src="item.cover" :alt="item.name" />
                     </div>
                     <div class="songslist-name">
                         <p class="name">{{ item.name }}</p>
@@ -127,7 +128,7 @@ onMounted(()=>{
                 @click="handleDjprogramsPlayer(item.id)"
                 >
                     <div class="djprogram-cover">
-                        <img :src="item.cover" :alt="item.name">
+                        <LazyImage :src="item.cover" :alt="item.name" />
                     </div>
                     <div class="djprogram-desc">
                         <p class="name">{{ item.name }}</p>
