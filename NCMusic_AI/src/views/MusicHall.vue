@@ -265,26 +265,8 @@ ul {
     height: 100px;
 }
 
-.songslist-cover img {
-    width: 100%;
-    height: 100%;
+.songslist-cover :deep(.lazy-image-container) {
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    z-index: 2;
-    position: relative;
-}
-
-.songslist-cover::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    right: -15px;
-    width: 100px;
-    height: 100px;
-    background: #000;
-    border-radius: 50%;
-    z-index: 1;
-    background: repeating-radial-gradient(circle, #333, #000 5px);
-    border: 1px solid #333;
 }
 
 .songslist-name .name {
