@@ -1,4 +1,6 @@
 <script setup>
+import { Sort, Eleme, RefreshRight, RefreshLeft, Check } from '@element-plus/icons-vue'
+
 // eslint-disable-next-line no-unused-vars
 const props = defineProps({
   modelValue: {
@@ -14,10 +16,10 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'update:visible', 'close'])
 
 const modes = [
-  { id: 0, name: '顺序播放', icon: '↻', desc: '按列表顺序依次播放' },
-  { id: 1, name: '随机播放', icon: '⤮', desc: '随机打乱顺序播放' },
-  { id: 2, name: '单曲循环', icon: '🔁', desc: '当前歌曲重复播放' },
-  { id: 3, name: '列表循环', icon: '🔂', desc: '播放完列表后重新开始' }
+  { id: 0, name: '顺序播放', icon: Sort, desc: '按列表顺序依次播放' },
+  { id: 1, name: '随机播放', icon: Eleme, desc: '随机打乱顺序播放' },
+  { id: 2, name: '单曲循环', icon: RefreshRight, desc: '当前歌曲重复播放' },
+  { id: 3, name: '列表循环', icon: RefreshLeft, desc: '播放完列表后重新开始' }
 ]
 
 const handleSelectMode = (modeId) => {
@@ -49,12 +51,16 @@ const handleClose = () => {
               :class="{ 'mode-item--active': modelValue === mode.id }"
               @click="handleSelectMode(mode.id)"
             >
-              <div class="mode-icon">{{ mode.icon }}</div>
+              <div class="mode-icon">
+                <el-icon :size="20"><component :is="mode.icon" /></el-icon>
+              </div>
               <div class="mode-info">
                 <div class="mode-name">{{ mode.name }}</div>
                 <div class="mode-desc">{{ mode.desc }}</div>
               </div>
-              <div v-if="modelValue === mode.id" class="mode-check">✓</div>
+              <div v-if="modelValue === mode.id" class="mode-check">
+                <el-icon :size="20" color="#26ce8a"><Check /></el-icon>
+              </div>
             </div>
           </div>
         </div>
@@ -152,35 +158,46 @@ const handleClose = () => {
 }
 
 .mode-icon {
-  font-size: 28px;
-  margin-right: 16px;
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  border-radius: 10px;
+  margin-right: 14px;
+  color: #fff;
+  transition: all 0.2s;
+}
+
+.mode-item:hover .mode-icon {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .mode-item--active .mode-icon {
-  background: rgba(38, 206, 138, 0.2);
+  background: rgba(38, 206, 138, 0.25);
+  color: #26ce8a;
 }
 
 .mode-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .mode-name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   color: #fff;
   margin-bottom: 4px;
+  line-height: 1.4;
 }
 
 .mode-desc {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
+  line-height: 1.4;
 }
 
 .mode-item--active .mode-name {
@@ -188,9 +205,11 @@ const handleClose = () => {
 }
 
 .mode-check {
-  color: #26ce8a;
-  font-size: 24px;
-  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
 }
 
 .modal-fade-enter-active,

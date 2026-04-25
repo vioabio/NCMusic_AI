@@ -4,7 +4,7 @@ import { useRoute,useRouter } from 'vue-router'
 import api from '@/api'
 import PlayModeSelector from '@/components/PlayModeSelector.vue'
 import { ElButton, ElSlider } from 'element-plus'
-import { ArrowLeft, ArrowRight, VideoPlay, VideoPause, RefreshRight } from '@element-plus/icons-vue'
+import { ArrowLeft, ArrowRight, VideoPlay, VideoPause, RefreshRight,Expand } from '@element-plus/icons-vue'
 
 
 const route = useRoute()
@@ -36,7 +36,6 @@ const playlistId = ref('') // 歌单ID
 // 播放模式：0-顺序播放，1-随机播放，2-单曲循环，3-列表循环
 const playMode = ref(0)
 const playModeNames = ['顺序播放', '随机播放', '单曲循环', '列表循环']
-const playModeIcons = ['↻', '⤮', '🔁', '🔂']
 
 // 播放模式弹窗
 const showPlayModeModal = ref(false)
@@ -417,7 +416,7 @@ onMounted(async()=>{
                     <el-button class="btn-circle" @click="handlePrevSong" title="上一首" :icon="ArrowLeft" circle />
                     <el-button class="btn-circle btm-large" @click="handleTogglePlay" :icon="isPlaying ? VideoPause : VideoPlay" circle />
                     <el-button class="btn-circle" @click="handleNextSong" title="下一首" :icon="ArrowRight" circle />
-                    <el-button class="btn-circle btn-mode" @click="handleTogglePlayMode" :title="playModeNames[playMode]" :icon="RefreshRight" circle />
+                    <el-button class="btn-circle btn-mode" @click="handleTogglePlayMode" :title="playModeNames[playMode]" :icon="Expand" circle />
                 </div>
                 <div class="progress-warp">
                     <span class="time-label">{{ formatTime(currentTime) }}</span>
@@ -656,12 +655,14 @@ onMounted(async()=>{
     color: #fff !important;
     font-size: 16px;
     transition: all 0.2s;
-    min-width: 45px;
+    width: 40px !important;
+    height: 40px !important;
 }
 
 .btn-circle.btm-large {
     font-size: 20px;
-    padding: 20px !important;
+    width: 50px !important;
+    height: 50px !important;
 }
 
 .btn-circle.btn-mode {

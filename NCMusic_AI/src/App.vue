@@ -4,7 +4,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useUserStore } from './stores/user'
 import api from './api/index'
 import { ElInput, ElButton, ElAvatar, ElDropdown, ElDropdownMenu, ElDropdownItem, ElIcon } from 'element-plus'
-import { ArrowUp, Download, Service } from '@element-plus/icons-vue'
+import { ArrowUp, Download, Service,Search } from '@element-plus/icons-vue'
 
 //全局状态管理，路由跳转
 const userStore = useUserStore()
@@ -126,6 +126,7 @@ onMounted(() => {
           @keyup.enter="doSearch"
           clearable
           class="search-input"
+          :prefix-icon="Search"
         />
       </div>
       <div class="top-nav-login">
@@ -169,17 +170,19 @@ onMounted(() => {
 
     <!-- 右侧边栏 -->
     <aside class="right-sidebar">
-      <el-button type="default" class="right-sidebar-btn" @click="handleOpenDownload">
-        <el-icon><Download /></el-icon> 下载客户端
-      </el-button>
+      <div class="right-sidebar-buttons">
+        <el-button type="default" class="right-sidebar-btn" @click="handleOpenDownload">
+          <el-icon><Download /></el-icon> 下载客户端
+        </el-button>
+        <el-button type="default" class="right-sidebar-btn" @click="handleOpenFeedback">
+          <el-icon><Service /></el-icon> 意见反馈
+        </el-button>
+        <el-button type="default" class="right-sidebar-btn" @click="scrollToTop">
+          <el-icon><ArrowUp /></el-icon> 回到顶部
+        </el-button>
+      </div>
       <download-modal ref="downloadModalRef" />
-      <el-button type="default" class="right-sidebar-btn" @click="handleOpenFeedback">
-        <el-icon><Service /></el-icon> 意见反馈
-      </el-button>
       <feedback-modal ref="feedbackModalRef" />
-      <el-button type="default" class="right-sidebar-btn" @click="scrollToTop">
-        <el-icon><ArrowUp /></el-icon> 回到顶部
-      </el-button>
     </aside>
 
     <!-- 主内容区 -->
@@ -230,18 +233,30 @@ onMounted(() => {
   height: 32px;
 }
 
-/* 覆盖 app.css 中的 .right-sidebar 样式 */
+/* 右侧边栏按钮样式 - 沿用 .right-sidebar-link 风格 */
 .right-sidebar {
-  display: flex !important;
+  grid-area: right;
+  background-color: #f9f9f9;
+  border-left: 1px solid #ddd;
+  padding: 20px;
+  margin-top: 30px;
+  margin-bottom: 20px;
+  position: sticky;
+  top: 80px;
+  height: calc(100vh - 110px);
+  overflow-y: auto;
+  align-self: start;
+}
+
+.right-sidebar-buttons {
+  display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* 右侧边栏按钮样式 - 沿用 .right-sidebar-link 风格 */
 .right-sidebar-btn {
   width: 100%;
-  margin: 0 !important;
-  padding: 10px;
+  /* 核心修复：盒模型包含边框/内边，不会超出容器宽度 */
   box-sizing: border-box;
   border: 1px solid #ccc;
   background: #fff;
@@ -253,7 +268,7 @@ onMounted(() => {
   justify-content: center;
   gap: 5px;
   transition: all 0.2s;
-  height: auto;
+  margin: 0 !important;
 }
 
 .right-sidebar-btn:hover {
