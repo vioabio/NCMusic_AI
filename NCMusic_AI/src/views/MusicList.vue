@@ -2,6 +2,7 @@
 import {ref,computed,onMounted} from 'vue'
 import { useRoute,useRouter } from 'vue-router';
 import api from '@/api';
+import { ElSkeleton, ElSkeletonItem } from 'element-plus';
 
 // 获取歌曲列表
 const route=useRoute()
@@ -63,17 +64,21 @@ onMounted(()=>{
             <h2 class="title">{{ playlistName || '加载中...' }}</h2>
             <!-- 骨架屏状态 -->
             <div v-if="loading" class="skeleton-container">
-                <div v-for="i in 20" :key="i" class="skeleton-item">
-                    <span class="skeleton-index">{{ i }}</span>
-                    <div class="skeleton-main">
-                        <div class="skeleton-name"></div>
-                        <div class="skeleton-artist"></div>
-                    </div>
-                    <div class="skeleton-extra">
-                        <div class="skeleton-album"></div>
-                        <div class="skeleton-duration"></div>
-                    </div>
-                </div>
+                <el-skeleton :rows="20" animated>
+                    <template #template>
+                        <div v-for="i in 20" :key="i" class="skeleton-item">
+                            <span class="skeleton-index">{{ i }}</span>
+                            <div class="skeleton-main">
+                                <el-skeleton-item variant="text" class="skeleton-name" />
+                                <el-skeleton-item variant="text" class="skeleton-artist" />
+                            </div>
+                            <div class="skeleton-extra">
+                                <el-skeleton-item variant="text" class="skeleton-album" />
+                                <el-skeleton-item variant="text" class="skeleton-duration" />
+                            </div>
+                        </div>
+                    </template>
+                </el-skeleton>
             </div>
             <!-- 空状态 -->
             <div v-else-if="!tracks.length" class="tip">暂无歌曲</div>
@@ -179,10 +184,30 @@ onMounted(()=>{
 .skeleton-album,
 .skeleton-duration {
     height: 14px;
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
     border-radius: 2px;
-    animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.skeleton-name {
+    flex: 1;
+}
+
+.skeleton-artist {
+    width: 120px;
+}
+
+.skeleton-extra {
+    width: 300px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.skeleton-album {
+    flex: 1;
+}
+
+.skeleton-duration {
+    width: 60px;
 }
 
 .skeleton-name {

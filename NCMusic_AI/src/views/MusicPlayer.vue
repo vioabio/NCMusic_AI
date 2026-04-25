@@ -3,6 +3,8 @@ import { ref,onMounted,computed,watch } from 'vue'
 import { useRoute,useRouter } from 'vue-router'
 import api from '@/api'
 import PlayModeSelector from '@/components/PlayModeSelector.vue'
+import { ElButton, ElSlider } from 'element-plus'
+import { ArrowLeft, ArrowRight, VideoPlay, VideoPause, RefreshRight } from '@element-plus/icons-vue'
 
 
 const route = useRoute()
@@ -412,18 +414,20 @@ onMounted(async()=>{
             <!-- 底部：控制区域 -->
             <div class="player-controls">
                 <div class="controls-main">
-                    <button class="btn-circle" @click="handlePrevSong" title="上一首">⏮</button>
-                    <button class="btn-circle btm-large" @click="handleTogglePlay">{{ isPlaying ? '⏸' : '▶' }}</button>
-                    <button class="btn-circle" @click="handleNextSong" title="下一首">⏭</button>
-                    <button class="btn-circle btn-mode" @click="handleTogglePlayMode" :title="playModeNames[playMode]">
-                        {{ playModeIcons[playMode] }}
-                    </button>
+                    <el-button class="btn-circle" @click="handlePrevSong" title="上一首" :icon="ArrowLeft" circle />
+                    <el-button class="btn-circle btm-large" @click="handleTogglePlay" :icon="isPlaying ? VideoPause : VideoPlay" circle />
+                    <el-button class="btn-circle" @click="handleNextSong" title="下一首" :icon="ArrowRight" circle />
+                    <el-button class="btn-circle btn-mode" @click="handleTogglePlayMode" :title="playModeNames[playMode]" :icon="RefreshRight" circle />
                 </div>
                 <div class="progress-warp">
                     <span class="time-label">{{ formatTime(currentTime) }}</span>
-                    <div class="progress-bar" @click="handleProgressClick">
-                        <div class="progress-inner" :style="{width:duration ? `${(currentTime/duration)*100}%` :'0%'}"></div>
-                    </div>
+                    <el-slider 
+                        v-model="currentTime" 
+                        :max="duration || 100" 
+                        @change="(val) => { if(audioRef) audioRef.currentTime = val }"
+                        class="progress-bar"
+                        :show-tooltip="false"
+                    />
                     <span class="time-label">{{ formatTime(duration) }}</span>
                 </div>
                 <audio
@@ -617,31 +621,24 @@ onMounted(async()=>{
 
 .progress-bar {
     flex: 1;
-    height: 4px;
-    background: rgba(255,255,255,0.1);
-    border-radius: 2px;
-    cursor: pointer;
-    position: relative;
     margin: 0 10px;
 }
 
-.progress-inner {
-    height: 100%;
-    background: #fff;
-    border-radius: 2px;
-    position: relative;
+.progress-bar :deep(.el-slider__runway) {
+    background-color: rgba(255,255,255,0.1);
+    height: 4px;
 }
 
-/* 进度条上的小白点 */
-.progress-inner::after {
-    content: "";
-    position: absolute;
-    right: -4px;
-    top: -3px;
+.progress-bar :deep(.el-slider__bar) {
+    background-color: #fff;
+    height: 4px;
+}
+
+.progress-bar :deep(.el-slider__button) {
     width: 10px;
     height: 10px;
-    background: #fff;
-    border-radius: 50%;
+    background-color: #fff;
+    border: none;
 }
 
 /* 控制按钮 */
@@ -654,39 +651,33 @@ onMounted(async()=>{
 }
 
 .btn-circle {
-    background: transparent;
-    border: 2px solid #fff;
-    color: #fff;
-    padding: 8px 25px;
-    border-radius: 20px;
-    cursor: pointer;
+    background: transparent !important;
+    border: 2px solid #fff !important;
+    color: #fff !important;
     font-size: 16px;
     transition: all 0.2s;
     min-width: 45px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .btn-circle.btm-large {
     font-size: 20px;
-    padding: 10px 30px;
-    min-width: 80px;
+    padding: 20px !important;
 }
 
 .btn-circle.btn-mode {
     font-size: 18px;
-    background: rgba(38, 206, 138, 0.1);
-    border-color: #26ce8a;
+    background: rgba(38, 206, 138, 0.1) !important;
+    border-color: #26ce8a !important;
+    color: #26ce8a !important;
 }
 
 .btn-circle:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.1) !important;
     transform: scale(1.05);
 }
 
 .btn-circle.btn-mode:hover {
-    background: rgba(38, 206, 138, 0.2);
+    background: rgba(38, 206, 138, 0.2) !important;
 }
 
 .audio-hidden {

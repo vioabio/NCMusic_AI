@@ -1,9 +1,10 @@
 <script setup>
-import { RouterLink, RouterView, useRouter } from 'vue-router'
+import { RouterView, useRouter } from 'vue-router'
 import { ref, onMounted, watch } from 'vue'
 import { useUserStore } from './stores/user'
 import api from './api/index'
-
+import { ElInput, ElButton, ElAvatar, ElDropdown, ElDropdownMenu, ElDropdownItem, ElIcon } from 'element-plus'
+import { ArrowUp, Download, Service } from '@element-plus/icons-vue'
 
 //全局状态管理，路由跳转
 const userStore = useUserStore()
@@ -54,9 +55,6 @@ watch(searchkeyword, () => {
   handleSearch()
 })
 
-const handleAvatarClick = () => {
-  console.log('点击了头像')
-}
 const handleLogout = () => {
   userStore.clearUser()
   router.push('/')
@@ -66,93 +64,88 @@ const handleLogout = () => {
 const scrollToTop = () => {
   window.scrollTo({
     top: 0,
-    behavior: 'smooth' // 平滑滚动
+    behavior: 'smooth'
   })
 }
 
 // 生成今日歌曲排行榜
-const hotSingers=ref([])
+const hotSingers = ref([])
 
-const fetchHotSingers=async()=>{
-    const res = await api.get('/top/artists',{limit:10})
-    hotSingers.value=(res.artists || []).map((item)=>({
-      name:item.name,
-      pic:item.picUrl,
-      id:item.id
-    }))
+const fetchHotSingers = async () => {
+  const res = await api.get('/top/artists', { limit: 10 })
+  hotSingers.value = (res.artists || []).map((item) => ({
+    name: item.name,
+    pic: item.picUrl,
+    id: item.id
+  }))
 }
 
-const handleClickSingerDetals =(id)=>{
-  if(!id) return
-  router.push({name:'singerdetails',query:{id}})
+const handleClickSingerDetals = (id) => {
+  if (!id) return
+  router.push({ name: 'singerdetails', query: { id } })
 }
 
 // 节流后的点击函数（1秒内只能点击一次）
 const handleSingerClickThrottled = throttle(handleClickSingerDetals, 1000)
 
 // 意见反馈
-import FeedbackModal from '../src/components/FeedbackModal.vue';
-
-const feedbackModalRef = ref(null);
-
+import FeedbackModal from '../src/components/FeedbackModal.vue'
+const feedbackModalRef = ref(null)
 const handleOpenFeedback = () => {
-  feedbackModalRef.value.open();
-};
+  feedbackModalRef.value.open()
+}
 
 // 客户端下载
 import DownloadModal from '../src/components/DownloadModal.vue'
-
-const downloadModalRef = ref(null);
+const downloadModalRef = ref(null)
 const handleOpenDownload = () => {
-  downloadModalRef.value.open();
-};
+  downloadModalRef.value.open()
+}
 
-
-onMounted(()=>{
+onMounted(() => {
   fetchHotSingers()
 })
-
 </script>
 
 <template>
   <div class="grid-layout">
-    <!-- 主界面采用grid布局 -->
+    <!-- 头部导航栏 -->
     <header class="top-nav">
-      <!-- 头部导航栏：logo/用户登录 -->
-      <div class="top-nav-logo">
-        <img src="./assets/img/logo.jpg" alt="网易云音乐" class="logo-img" width="50px" height="50px">
+      <div class="top-nav-logo" @click="router.push('/')">
+        <img src="./assets/img/logo.jpg" alt="网易云音乐" class="logo-img">
         <span class="top-nav-logo-text">网易云音乐</span>
       </div>
-      <!-- 主功能界面 -->
       <div class="top-nav-links">
-        <router-link to="/" class="top-nav-link" >音乐馆</router-link>
+        <router-link to="/" class="top-nav-link">音乐馆</router-link>
         <router-link to="/mymusic" class="top-nav-link">我的音乐</router-link>
       </div>
-      <!-- 搜索框：使用ladash库中的_.debounce函数添加防抖 -->
       <div class="top-nav-search">
-        <input type="text" class="searchmusic" v-model="searchkeyword" @keyup.enter="doSearch" placeholder="搜索音乐/歌手/歌单">
+        <el-input
+          v-model="searchkeyword"
+          placeholder="搜索音乐/歌手/歌单"
+          @keyup.enter="doSearch"
+          clearable
+          class="search-input"
+        />
       </div>
       <div class="top-nav-login">
-        <router-link v-if="!userStore.isLoggedIn" to="/login" class="login"
-            >登录界面</router-link
-          >
-          <div v-else class="user-menu">
-            <button class="user-avatar" type="button" @click="handleAvatarClick">
-              <img :src="userStore.user?.avatar" alt="用户头像" />
-            </button>
-            <div class="user-dropdown">
-              <div class="user-dropdown-header">
-                <span class="user-name">{{ userStore.user?.nickname || '我的账号' }}</span>
-              </div>
-              <button class="user-dropdown-item" type="button" @click="handleLogout">
-                退出登录
-              </button>
-            </div>
-          </div>
+        <el-button v-if="!userStore.isLoggedIn" type="primary" @click="router.push('/login')">
+          登录
+        </el-button>
+        <el-dropdown v-else trigger="click">
+          <el-avatar :src="userStore.user?.avatar" :size="35" class="user-avatar" />
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item disabled>{{ userStore.user?.nickname || '我的账号' }}</el-dropdown-item>
+              <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
     </header>
+
+    <!-- 左侧边栏 -->
     <aside class="left-sidebar">
-      <!-- 创建左侧边栏：添加AI助手/当日排行榜 -->
       <div class="left-sidebar-link">
         热门歌手排行榜
       </div>
@@ -160,65 +153,64 @@ onMounted(()=>{
         <div class="hotsinger">
           <ul class="hotsinger-inner">
             <li
-            v-for="(item,index) in hotSingers"
-            :key="index"
-            class="hotsinger-list"
-            @click="handleSingerClickThrottled(item.id)"
+              v-for="(item, index) in hotSingers"
+              :key="item.id"
+              class="hotsinger-list"
+              @click="handleSingerClickThrottled(item.id)"
             >
-            <span class="hotsinger-index">{{ index+1 }}</span>
-            <img :src="item.pic" alt="歌手头像" class="hotsinger-pic">
-            <span class="hotsinger-name">{{ item.name }}</span>
+              <span class="hotsinger-index">{{ index + 1 }}</span>
+              <img :src="item.pic" alt="歌手头像" class="hotsinger-pic">
+              <span class="hotsinger-name">{{ item.name }}</span>
             </li>
           </ul>
         </div>
       </div>
     </aside>
+
+    <!-- 右侧边栏 -->
     <aside class="right-sidebar">
-      <!-- 创建右侧边栏：添加意见反馈和回到顶部 -->
-      <div class="right-sidebar-link" @click="handleOpenDownload">
-        下载客户端
-      </div>
-      <download-modal ref="downloadModalRef"></download-modal>
-      <div class="right-sidebar-link" @click="handleOpenFeedback">
-        意见反馈
-      </div>
-      <feedback-modal ref="feedbackModalRef"></feedback-modal>
-      <div class="right-sidebar-link" @click="scrollToTop">
-        回到顶部
-      </div>
+      <el-button type="default" class="right-sidebar-btn" @click="handleOpenDownload">
+        <el-icon><Download /></el-icon> 下载客户端
+      </el-button>
+      <download-modal ref="downloadModalRef" />
+      <el-button type="default" class="right-sidebar-btn" @click="handleOpenFeedback">
+        <el-icon><Service /></el-icon> 意见反馈
+      </el-button>
+      <feedback-modal ref="feedbackModalRef" />
+      <el-button type="default" class="right-sidebar-btn" @click="scrollToTop">
+        <el-icon><ArrowUp /></el-icon> 回到顶部
+      </el-button>
     </aside>
+
+    <!-- 主内容区 -->
     <main class="main-content">
-      <!-- 创建路由跳转子界面：显示界面内容 -->
-      <router-view></router-view>
+      <router-view />
     </main>
 
-    <!-- 页脚部分内容 -->
+    <!-- 页脚 -->
     <footer class="footer">
       <div class="footer-content">
-        <!-- 网页链接部分 -->
         <div class="footer-links">
           <a href="#">服务条款</a><span class="line">|</span>
           <a href="#">隐私政策</a><span class="line">|</span>
           <a href="#">儿童隐私政策</a><span class="line">|</span>
           <a href="#">版权投诉</a><span class="line">|</span>
-          <a href="#">投资者关系</a><span class="line">|</span> 
+          <a href="#">投资者关系</a><span class="line">|</span>
           <a href="#">广告合作</a><span class="line">|</span>
           <a href="#">联系我们</a>
         </div>
-
-        <!-- 底部版权信息区域 -->
         <div class="footer-info">
           <p>
             <span>廉正举报</span>
             <span class="margin-left">不良信息举报邮箱：51jubao@service.netease.com</span>
           </p>
           <p>
-            互联网宗教信息服务许可证：浙（2022）0000120 增值电信业务经营许可证：浙B2-20150198 
+            互联网宗教信息服务许可证：浙（2022）0000120 增值电信业务经营许可证：浙B2-20150198
             粤B2-20090191-18 浙ICP备15006616号-4 工业和信息化部备案管理系统网站
           </p>
           <p>
-            网易公司版权所有©1997-2026  杭州乐读科技有限公司运营：浙网文[2024] 0900-042号 
-            <span class="police-icon"></span> 浙公网安备 33010802013307号  算法服务公示信息
+            网易公司版权所有©1997-2026 杭州乐读科技有限公司运营：浙网文[2024] 0900-042号
+            <span class="police-icon"></span> 浙公网安备 33010802013307号 算法服务公示信息
           </p>
         </div>
       </div>
@@ -228,4 +220,44 @@ onMounted(()=>{
 
 <style scoped>
 @import './css/app.css';
+
+/* Element Plus 组件样式覆盖 */
+.search-input :deep(.el-input__wrapper) {
+  border-radius: 32px;
+}
+
+.top-nav-search :deep(.el-input__inner) {
+  height: 32px;
+}
+
+/* 覆盖 app.css 中的 .right-sidebar 样式 */
+.right-sidebar {
+  display: flex !important;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 右侧边栏按钮样式 - 沿用 .right-sidebar-link 风格 */
+.right-sidebar-btn {
+  width: 100%;
+  margin: 0 !important;
+  padding: 10px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  background: #fff;
+  color: #333;
+  font-size: 12px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transition: all 0.2s;
+  height: auto;
+}
+
+.right-sidebar-btn:hover {
+  border-color: #C20C0C;
+  color: #C20C0C;
+}
 </style>

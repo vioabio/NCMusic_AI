@@ -3,6 +3,7 @@ import api from '../api/index.js';
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import LazyImage from '@/components/LazyImage.vue';
+import { ElCard } from 'element-plus';
 
 // 推荐歌单
 const playlists = ref([])
@@ -91,9 +92,9 @@ onMounted(()=>{
                 class="playlists-item"
                 @click="handlePlayListClick(item.id)"
                 >
-                    <div class="cover-warpper">
+                    <el-card class="cover-warpper" :body-style="{ padding: '0' }" shadow="hover">
                         <LazyImage :src="item.cover" :alt="item.name" />
-                    </div>
+                    </el-card>
                     <div class="info">
                         <p class="name">{{item.name}}</p>
                         <p class="desc">{{item.desc}}</p>
@@ -109,9 +110,9 @@ onMounted(()=>{
                 class="songslist-item"
                 @click="handleMusicPlayer(item.id)"
                 >
-                    <div class="songslist-cover">
+                    <el-card class="songslist-cover" :body-style="{ padding: '0' }" shadow="hover">
                         <LazyImage :src="item.cover" :alt="item.name" />
-                    </div>
+                    </el-card>
                     <div class="songslist-name">
                         <p class="name">{{ item.name }}</p>
                         <p class="desc">{{ item.desc }}</p>
@@ -127,9 +128,9 @@ onMounted(()=>{
                 class="djprogram-item"
                 @click="handleDjprogramsPlayer(item.id)"
                 >
-                    <div class="djprogram-cover">
+                    <el-card class="djprogram-cover" :body-style="{ padding: '0' }" shadow="hover">
                         <LazyImage :src="item.cover" :alt="item.name" />
-                    </div>
+                    </el-card>
                     <div class="djprogram-desc">
                         <p class="name">{{ item.name }}</p>
                     </div>
@@ -194,6 +195,12 @@ ul {
     position: relative;
     width: 140px;
     height: 140px;
+    border: none;
+}
+
+.cover-warpper :deep(.el-card__body) {
+    width: 100%;
+    height: 100%;
 }
 
 .cover-warpper img {
@@ -263,6 +270,12 @@ ul {
     position: relative;
     width: 100px;
     height: 100px;
+    border: none;
+}
+
+.songslist-cover :deep(.el-card__body) {
+    width: 100%;
+    height: 100%;
 }
 
 .songslist-cover :deep(.lazy-image-container) {
@@ -298,6 +311,15 @@ ul {
 
 .djprogram-item:nth-child(6n) {
     margin-right: 0;
+}
+
+.djprogram-cover {
+    border: none;
+}
+
+.djprogram-cover :deep(.el-card__body) {
+    width: 140px;
+    height: 140px;
 }
 
 .djprogram-cover img {

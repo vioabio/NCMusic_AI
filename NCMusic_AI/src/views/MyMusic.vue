@@ -3,6 +3,7 @@ import {ref,onMounted } from 'vue'
 import api  from '@/api'
 import {useUserStore} from '@/stores/user'
 import { useRouter } from 'vue-router'
+import { ElButton, ElCard, ElEmpty } from 'element-plus'
 
 const userStore=useUserStore()
 const router=useRouter()
@@ -47,11 +48,13 @@ const handleOpenPlayList=(id)=>{
       <!-- 判断用户是否登录 -->
       <div v-if="!userStore.isLoggedIn" class="login-hint">
         <p class="hint-text">您还未登录，请先登录后查看个人歌单</p>
-        <button class="hint-btn" type="button" @click="handleGoLogin">去登录</button>
+        <el-button type="danger" class="hint-btn" @click="handleGoLogin" round>去登录</el-button>
       </div>
       <div v-else>
         <p class="subtitle">我的歌单</p>
-        <div v-if="!playlists.length" class="tip">暂无歌单，快去收藏一些音乐吧！</div>
+        <div v-if="!playlists.length" class="tip">
+          <el-empty description="暂无歌单，快去收藏一些音乐吧！" />
+        </div>
         <ul v-else class="playlist-list">
             <li
                 v-for="item in playlists" 
@@ -59,9 +62,9 @@ const handleOpenPlayList=(id)=>{
                 class="playlist-item"
                 @click="handleOpenPlayList(item.id)"
             >
-            <div class="cover">
+            <el-card class="cover" :body-style="{ padding: '0' }" shadow="hover">
                 <img :src="item.cover" alt="">
-            </div>
+            </el-card>
             <div class="info">
                 <p class="name">{{ item.name }}</p>
                 <p class="desc">共{{ item.trackCount }}首</p>
@@ -114,7 +117,11 @@ const handleOpenPlayList=(id)=>{
   color: white;
   border: none;
   border-radius: 20px;
-  cursor: pointer;
+}
+
+.hint-btn:hover {
+  background-color: #f56c6c;
+  color: white;
 }
 
 /* 歌单列表 - 网格布局 */
@@ -147,6 +154,12 @@ const handleOpenPlayList=(id)=>{
   background-color: #f0f0f0;
   border-radius: 8px;
   overflow: hidden;
+  border: none;
+}
+
+.cover :deep(.el-card__body) {
+  width: 100%;
+  height: 100%;
 }
 
 .cover img {

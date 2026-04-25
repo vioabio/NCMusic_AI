@@ -2,6 +2,7 @@
 import { ref,computed,onMounted,watch } from "vue"
 import { useRoute,useRouter } from "vue-router"
 import api from "@/api"
+import { ElSkeleton,  ElEmpty } from 'element-plus'
 
 const route = useRoute()
 const songList = ref([])
@@ -65,9 +66,11 @@ onMounted(() =>{
     <p class="keyword" v-if="keyword">关键字：{{ keyword }}</p>
     <p v-else class="keyword">暂无关键字，请在顶部搜索框输入内容</p>
 
-    <div v-if="loading" class="tip">正在搜索中...</div>
+    <div v-if="loading" class="tip">
+      <el-skeleton :rows="10" animated />
+    </div>
     <div v-else-if="keyword && !songList.length" class="tip">
-      未找到与 "{{keyword}}" 相关的歌曲
+      <el-empty description="未找到相关歌曲" />
     </div>
 
     <ul v-else class="song-list">

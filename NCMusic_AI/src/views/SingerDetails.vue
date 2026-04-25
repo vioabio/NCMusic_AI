@@ -2,6 +2,7 @@
 import { useRoute } from 'vue-router';
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '../api/index';
+import { ElTabs, ElTabPane, ElCard, ElAvatar } from 'element-plus';
 
 const route = useRoute()
 const singerId = computed(() => route.query.id)
@@ -141,7 +142,7 @@ watch(singerId, (newId, oldId) => {
             <!-- 1. 歌手头部信息 -->
             <div class="singer-header">
                 <div class="singer-desc">
-                    <img :src="singerdetails[0].pic" class="singer-pic">
+                    <el-avatar :src="singerdetails[0].pic" :size="200" class="singer-pic" shape="square" />
                     <div class="singer-info">
                         <h2 class="singer-name">{{ singerdetails[0].name }}</h2>
                         <div class="singer-identify">身份：{{ singerdetails[0].identify }}</div>
@@ -156,7 +157,7 @@ watch(singerId, (newId, oldId) => {
                     <div class="sim-title">相似歌手</div>
                     <div class="sim-list">
                         <div class="sim-item" v-for="sim in simSingers" :key="sim.name">
-                            <img :src="sim.pic" class="sim-avatar">
+                            <el-avatar :src="sim.pic" :size="50" class="sim-avatar" />
                             <span class="sim-name">{{ sim.name }}</span>
                         </div>
                     </div>
@@ -164,43 +165,38 @@ watch(singerId, (newId, oldId) => {
             </div>
 
             <!-- 2. Tab 切换 -->
-            <div class="singer-tabs">
-                <div class="tab-item" :class="{ active: currentTab === 'songs' }" @click="currentTab = 'songs'">单曲</div>
-                <div class="tab-item" :class="{ active: currentTab === 'albums' }" @click="currentTab = 'albums'">专辑</div>
-                <div class="tab-item" :class="{ active: currentTab === 'mvs' }" @click="currentTab = 'mvs'">MV</div>
-            </div>
-
-            <!-- 3. 内容展示区域 -->
-            <div class="tab-content">
+            <el-tabs v-model="currentTab" class="singer-tabs">
+                <el-tab-pane label="单曲" name="songs">
+                    <!-- 单曲列表 -->
+                    <div class="singer-songs">
+                        <ul class="songs-list">
+                            <li v-for="(item, index) in singersongs" :key="index" class="song-item">
+                                <span class="song-index">{{ (index + 1).toString().padStart(2, '0') }}</span>
+                                <span class="song-name">{{ item.name }}</span>
+                                <span class="song-time">{{ formatDuration(item.duration) }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </el-tab-pane>
                 
-                <!-- 单曲列表 -->
-                <div class="singer-songs" v-if="currentTab === 'songs'">
-                    <ul class="songs-list">
-                        <li v-for="(item, index) in singersongs" :key="index" class="song-item">
-                            <span class="song-index">{{ (index + 1).toString().padStart(2, '0') }}</span>
-                            <span class="song-name">{{ item.name }}</span>
-                            <span class="song-time">{{ formatDuration(item.duration) }}</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- 专辑与MV 统一使用相同的 Grid 结构 -->
-                <div class="grid-container" v-else>
+                <el-tab-pane label="专辑" name="albums">
                     <!-- 专辑视图 -->
-                    <template v-if="currentTab === 'albums'">
-                        <div v-for="item in singerAlbums" :key="item.name" class="card-item">
+                    <div class="grid-container">
+                        <el-card v-for="item in singerAlbums" :key="item.name" class="card-item" :body-style="{ padding: '0' }" shadow="hover">
                             <div class="img-wrapper">
                                 <img :src="item.pic" class="card-img">
                             </div>
                             <div class="card-info">
                                 <div class="card-name" :title="item.name">{{ item.name }}</div>
                             </div>
-                        </div>
-                    </template>
-
+                        </el-card>
+                    </div>
+                </el-tab-pane>
+                
+                <el-tab-pane label="MV" name="mvs">
                     <!-- MV 视图 -->
-                    <template v-if="currentTab === 'mvs'">
-                        <div v-for="item in singerMVs" :key="item.name" class="card-item">
+                    <div class="grid-container">
+                        <el-card v-for="item in singerMVs" :key="item.name" class="card-item" :body-style="{ padding: '0' }" shadow="hover">
                             <div class="img-wrapper">
                                 <img :src="item.pic" class="card-img">
                                 <span class="duration-tag">{{ formatDuration(item.duration) }}</span>
@@ -209,11 +205,10 @@ watch(singerId, (newId, oldId) => {
                                 <div class="card-name" :title="item.name">{{ item.name }}</div>
                                 <div class="card-date">{{ item.publishtime }}</div>
                             </div>
-                        </div>
-                    </template>
-                </div>
-
-            </div>
+                        </el-card>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
         </div>
     </div>
 </template>
@@ -303,31 +298,25 @@ watch(singerId, (newId, oldId) => {
 
 /* Tab 切换样式 */
 .singer-tabs {
-    display: flex;
-    border-bottom: 1px solid #ddd;
     margin-bottom: 25px;
 }
 
-.tab-item {
+.singer-tabs :deep(.el-tabs__item) {
     padding: 10px 35px;
-    cursor: pointer;
     font-size: 15px;
-    position: relative;
 }
 
-.tab-item.active {
+.singer-tabs :deep(.el-tabs__item.is-active) {
     color: #31c27c;
     font-weight: bold;
 }
 
-.tab-item.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: #31c27c;
+.singer-tabs :deep(.el-tabs__active-bar) {
+    background-color: #31c27c;
+}
+
+.singer-tabs :deep(.el-tabs__nav-wrap::after) {
+    background-color: #ddd;
 }
 
 /* 单曲列表 */
@@ -360,6 +349,11 @@ watch(singerId, (newId, oldId) => {
     width: 100%;
     display: flex;
     flex-direction: column;
+    border: none;
+}
+
+.card-item :deep(.el-card__body) {
+    width: 100%;
 }
 
 /* 图片容器：强制专辑和 MV 比例一致 */

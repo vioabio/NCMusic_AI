@@ -3,6 +3,7 @@ import {ref,onMounted,watch,onBeforeUnmount} from 'vue'
 import api from '../api/index'
 import {useUserStore} from '../stores/user'
 import { useRouter } from 'vue-router'
+import {  ElCard, ElSkeleton } from 'element-plus'
 
 const router=useRouter()
 
@@ -147,7 +148,7 @@ onBeforeUnmount(()=>{
 
 <template>
   <div class="login-overlay" @click="handleOverlayClick">
-    <div class="login-modal" @click.stop>
+    <el-card class="login-modal" @click.stop shadow="hover">
       <div class="login-header">
         <h2>扫码登录网易云音乐</h2>
         <p>使用网易云音乐 APP 扫码登录，更安全更快捷</p>
@@ -159,7 +160,7 @@ onBeforeUnmount(()=>{
                 <img :src="qrImg" alt="登录二维码">
             </template>
             <template v-else>
-                <span>二维码加载中......</span>
+                <el-skeleton :rows="3" animated />
             </template>
           </div>
           <p class="qrcode-tip">打开网易云音乐APP扫码登录</p>
@@ -170,7 +171,7 @@ onBeforeUnmount(()=>{
             <li>更安全的扫码登录方式</li>
         </ul>
       </div>
-    </div>
+    </el-card>
   </div>
 </template>
 
@@ -199,6 +200,10 @@ onBeforeUnmount(()=>{
     position: relative;
     box-sizing: border-box;
     z-index: 100;
+}
+
+.login-modal :deep(.el-card__body) {
+    padding: 0;
 }
 
 /* 头部标题样式 */
