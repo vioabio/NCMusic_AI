@@ -1,13 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import MusciHall from '../views/MusicHall.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path:'/',
+      name:'wallpaper',
+      component:()=>import ('../views/WallpaperPage.vue'),
+    },
+    {
+      path:'/musichall',
       name:'musichall',
-      component:MusciHall,
+      component:()=>import ('../views/MusicHall.vue'),
     },
     {
       path:'/musiclist',

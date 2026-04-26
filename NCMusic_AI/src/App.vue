@@ -116,7 +116,7 @@ onMounted(() => {
         <span class="top-nav-logo-text">网易云音乐</span>
       </div>
       <div class="top-nav-links">
-        <router-link to="/" class="top-nav-link">音乐馆</router-link>
+        <router-link to="/musichall" class="top-nav-link">音乐馆</router-link>
         <router-link to="/mymusic" class="top-nav-link">我的音乐</router-link>
       </div>
       <div class="top-nav-search">

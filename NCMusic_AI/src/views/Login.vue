@@ -110,8 +110,8 @@ const startQrCheck = (key) =>{
             }catch(err){
                 console.error("登录状态检查失败:", err)
             }
-            // 只有登录成功才跳转首页
-            router.push("/")
+            // 只有登录成功才跳转音乐馆
+            router.push("/musichall")
         }
         // 801(等待扫码)、802(待确认)：什么都不做，继续轮询，弹窗一直存在
     },3000)
@@ -129,7 +129,7 @@ watch(
 onMounted(()=>{
     // 检查是否已登录，避免重复登录
     if(userStore.isLoggedIn) {
-        router.push("/")
+        router.push("/musichall")
         return
     }
     fetchLoginKey()
