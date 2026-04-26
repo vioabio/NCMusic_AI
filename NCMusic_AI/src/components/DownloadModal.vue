@@ -17,7 +17,7 @@
       <div class="download-options">
         <div class="download-item" @click="downloadApp('windows')">
           <div class="download-icon">
-            <span class="icon-windows"></span>
+            <img src="../assets/img/icon_svg/windows-legacy-svgrepo-com.svg" alt="Windows" class="platform-icon" />
           </div>
           <div class="download-info">
             <h4>Windows 版</h4>
@@ -31,7 +31,7 @@
 
         <div class="download-item" @click="downloadApp('mac')">
           <div class="download-icon">
-            <span class="icon-mac"></span>
+            <img src="../assets/img/icon_svg/mac-svgrepo-com.svg" alt="Mac" class="platform-icon" />
           </div>
           <div class="download-info">
             <h4>Mac 版</h4>
@@ -43,23 +43,9 @@
           </button>
         </div>
 
-        <div class="download-item" @click="downloadApp('ios')">
-          <div class="download-icon">
-            <span class="icon-ios"></span>
-          </div>
-          <div class="download-info">
-            <h4>iOS 版</h4>
-            <p class="version">版本 8.2.1</p>
-            <p class="size">大小: 156 MB</p>
-          </div>
-          <button class="download-btn">
-            <span class="btn-text">App Store</span>
-          </button>
-        </div>
-
         <div class="download-item" @click="downloadApp('android')">
           <div class="download-icon">
-            <span class="icon-android"></span>
+            <img src="../assets/img/icon_svg/android-color-svgrepo-com.svg" alt="Android" class="platform-icon" />
           </div>
           <div class="download-info">
             <h4>Android 版</h4>
@@ -181,26 +167,10 @@ defineExpose({ open });
   border-radius: 8px;
 }
 
-.icon-windows::before {
-  content: "⊞";
-  font-size: 24px;
-  color: #0078d7;
-}
-
-.icon-mac::before {
-  content: "🍎";
-  font-size: 24px;
-}
-
-.icon-ios::before {
-  content: "📱";
-  font-size: 24px;
-}
-
-.icon-android::before {
-  content: "🤖";
-  font-size: 24px;
-  color: #3DDC84;
+.platform-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
 }
 
 .download-info {

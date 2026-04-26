@@ -1,5 +1,5 @@
 <script setup>
-import { RouterView, useRouter } from 'vue-router'
+import { RouterView, useRouter, useRoute } from 'vue-router'
 import { ref, onMounted, watch } from 'vue'
 import { useUserStore } from './stores/user'
 import api from './api/index'
@@ -9,6 +9,13 @@ import { ArrowUp, Download, Service,Search } from '@element-plus/icons-vue'
 //全局状态管理，路由跳转
 const userStore = useUserStore()
 const router = useRouter()
+const route = useRoute()
+
+// 是否显示导航栏（壁纸页面不显示）
+const showNav = ref(true)
+watch(() => route.path, (path) => {
+  showNav.value = path !== '/'
+}, { immediate: true })
 
 const searchkeyword = ref('')
 
@@ -108,10 +115,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="grid-layout">
+  <div class="grid-layout" :class="{ 'hide-sidebar': !showNav }">
     <!-- 头部导航栏 -->
-    <header class="top-nav">
-      <div class="top-nav-logo" @click="router.push('/')">
+    <header class="top-nav" v-if="showNav">
+      <div class="top-nav-logo" @click="router.push('/musichall')">
         <img src="./assets/img/logo.jpg" alt="网易云音乐" class="logo-img">
         <span class="top-nav-logo-text">网易云音乐</span>
       </div>
@@ -146,7 +153,7 @@ onMounted(() => {
     </header>
 
     <!-- 左侧边栏 -->
-    <aside class="left-sidebar">
+    <aside class="left-sidebar" v-if="showNav">
       <div class="left-sidebar-link">
         热门歌手排行榜
       </div>
@@ -169,7 +176,7 @@ onMounted(() => {
     </aside>
 
     <!-- 右侧边栏 -->
-    <aside class="right-sidebar">
+    <aside class="right-sidebar" v-if="showNav">
       <div class="right-sidebar-buttons">
         <el-button type="default" class="right-sidebar-btn" @click="handleOpenDownload">
           <el-icon><Download /></el-icon> 下载客户端
@@ -186,12 +193,12 @@ onMounted(() => {
     </aside>
 
     <!-- 主内容区 -->
-    <main class="main-content">
+    <main class="main-content" :class="{ 'full-width': !showNav }">
       <router-view />
     </main>
 
     <!-- 页脚 -->
-    <footer class="footer">
+    <footer class="footer" v-if="showNav">
       <div class="footer-content">
         <div class="footer-links">
           <a href="#">服务条款</a><span class="line">|</span>
@@ -223,6 +230,14 @@ onMounted(() => {
 
 <style scoped>
 @import './css/app.css';
+
+/* 壁纸页面隐藏侧边栏时，主内容区全屏 */
+.hide-sidebar .main-content.full-width {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+}
 
 /* Element Plus 组件样式覆盖 */
 .search-input :deep(.el-input__wrapper) {

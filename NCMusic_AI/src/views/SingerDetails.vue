@@ -1,10 +1,11 @@
 <script setup>
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ref, computed, onMounted, watch } from 'vue';
 import api from '../api/index';
 import { ElTabs, ElTabPane, ElCard, ElAvatar } from 'element-plus';
 
 const route = useRoute()
+const router=useRouter()
 const singerId = computed(() => route.query.id)
 
 // 响应式数据
@@ -63,14 +64,22 @@ const fetchSingerSongs = async () => {
         const res = await api.get('/artists', { id })
         if (res.hotSongs) {
             singersongs.value = res.hotSongs.map((item) => ({
+                id: item.id,
                 name: item.name,
                 duration: item.dt,
             }))
+            console.log(singersongs.value)
         }
     } catch (err) {
         console.error('获取歌手单曲失败', err)
     }
 }
+
+const handlePlaySongs=(id)=>{
+    if(!id) return
+    router.push({name:'musicplayer',query:{id}})
+}
+
 
 const fetchSingerAlbums = async () => {
     const id = singerId.value
@@ -139,7 +148,7 @@ watch(singerId, (newId, oldId) => {
     <div class="singer-content">
         <div class="singer-inner" v-if="singerdetails.length">
             
-            <!-- 1. 歌手头部信息 -->
+            <!-- 歌手信息 -->
             <div class="singer-header">
                 <div class="singer-desc">
                     <el-avatar :src="singerdetails[0].pic" :size="200" class="singer-pic" shape="square" />
@@ -164,13 +173,12 @@ watch(singerId, (newId, oldId) => {
                 </div>
             </div>
 
-            <!-- 2. Tab 切换 -->
+            <!-- 歌曲列表 -->
             <el-tabs v-model="currentTab" class="singer-tabs">
                 <el-tab-pane label="单曲" name="songs">
-                    <!-- 单曲列表 -->
                     <div class="singer-songs">
                         <ul class="songs-list">
-                            <li v-for="(item, index) in singersongs" :key="index" class="song-item">
+                            <li v-for="(item, index) in singersongs" :key="index" class="song-item" @click="handlePlaySongs(item.id)">
                                 <span class="song-index">{{ (index + 1).toString().padStart(2, '0') }}</span>
                                 <span class="song-name">{{ item.name }}</span>
                                 <span class="song-time">{{ formatDuration(item.duration) }}</span>
@@ -180,7 +188,6 @@ watch(singerId, (newId, oldId) => {
                 </el-tab-pane>
                 
                 <el-tab-pane label="专辑" name="albums">
-                    <!-- 专辑视图 -->
                     <div class="grid-container">
                         <el-card v-for="item in singerAlbums" :key="item.name" class="card-item" :body-style="{ padding: '0' }" shadow="hover">
                             <div class="img-wrapper">
