@@ -68,7 +68,6 @@ const fetchSingerSongs = async () => {
                 name: item.name,
                 duration: item.dt,
             }))
-            console.log(singersongs.value)
         }
     } catch (err) {
         console.error('获取歌手单曲失败', err)
@@ -87,6 +86,7 @@ const fetchSingerAlbums = async () => {
         const res = await api.get('/artist/album', { id, limit: 10 })
         if (res.hotAlbums) {
             singerAlbums.value = res.hotAlbums.map((item) => ({
+                id:item.id,
                 pic: item.picUrl,
                 name: item.name,
             }))
@@ -94,6 +94,12 @@ const fetchSingerAlbums = async () => {
     } catch (err) {
         console.error('获取歌手专辑失败', err)
     }
+}
+
+// 用户点击专辑图片跳转至对应的专辑界面
+const handleSingerAlbums=async(id)=>{
+    if(!id) return 
+    router.push({name:'singeralbums',query:{id}})
 }
 
 const fetchSingerMVs = async () => {
@@ -189,7 +195,7 @@ watch(singerId, (newId, oldId) => {
                 
                 <el-tab-pane label="专辑" name="albums">
                     <div class="grid-container">
-                        <el-card v-for="item in singerAlbums" :key="item.name" class="card-item" :body-style="{ padding: '0' }" shadow="hover">
+                        <el-card v-for="item in singerAlbums" :key="item.name" class="card-item" :body-style="{ padding: '0' }" shadow="hover" @click="handleSingerAlbums(item.id)">
                             <div class="img-wrapper">
                                 <img :src="item.pic" class="card-img">
                             </div>
@@ -203,7 +209,7 @@ watch(singerId, (newId, oldId) => {
                 <el-tab-pane label="MV" name="mvs">
                     <!-- MV 视图 -->
                     <div class="grid-container">
-                        <el-card v-for="item in singerMVs" :key="item.name" class="card-item" :body-style="{ padding: '0' }" shadow="hover">
+                        <el-card v-for="item in singerMVs" :key="item.name" class="card-item" :body-style="{ padding: '0' }" shadow="hover" >
                             <div class="img-wrapper">
                                 <img :src="item.pic" class="card-img">
                                 <span class="duration-tag">{{ formatDuration(item.duration) }}</span>
