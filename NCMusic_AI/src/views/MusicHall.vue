@@ -5,6 +5,23 @@ import { useRouter } from 'vue-router';
 import LazyImage from '@/components/LazyImage.vue';
 import { ElCard } from 'element-plus';
 
+// 获取轮播图图像
+const carsouellist=ref([])
+const fetchcarsouellist = async()=>{
+    try{
+        const res = await api.get('/banner')
+        if(res){
+          console.log('轮播图数据:', res.banners) // 调试用
+          carsouellist.value=(res.banners || []).map((item)=>({
+            imgurl: item.imageUrl || item.pic || '',
+          }))
+          console.log('处理后的轮播图:', carsouellist.value) // 调试用
+        }
+    }catch(err){
+        console.log('获取轮播图失败',err)
+    }
+}
+
 // 推荐歌单
 const playlists = ref([])
 
@@ -71,6 +88,7 @@ const handleDjprogramsPlayer=(id)=>{
     router.push({name:'anchorplayer',query:{id}})
 }
 onMounted(()=>{
+    fetchcarsouellist()
     fetchPlayLists()
     fetchSongsList()
     fetchdjprograms()
@@ -82,6 +100,13 @@ onMounted(()=>{
     <div class="hall-wrapper">
         <!-- 推荐歌单/歌曲/电台 -->
         <div class="hall-inner">
+            <!-- 轮播图 -->
+            <el-carousel height="150px">
+                <el-carousel-item v-for="(item, index) in carsouellist" :key="index">
+                    <img :src="item.imgurl" alt="轮播图" v-if="item.imgurl">
+                    <div v-else class="no-image">暂无轮播图图片</div>
+                </el-carousel-item>
+            </el-carousel>
             <!-- 每日推荐歌曲 -->
             <h2 class="section-title">推荐歌单</h2>
             <ul class="playlists">
@@ -232,7 +257,7 @@ ul {
 
 .playlists-item .name {
     margin: 8px 0 3px;
-    font-size: 14px;
+    font-size: 10px;
     color: #333;
     line-height: 1.4;
     cursor: pointer;
@@ -256,7 +281,7 @@ ul {
     display: grid;
     grid-template-columns: repeat(5, 118px);
     justify-content: space-between;
-    gap: 20px 0; 
+    gap: 10px 0; 
 }
 
 .songslist-item {
@@ -337,5 +362,24 @@ ul {
 /* 辅助样式：隐藏多余文本 */
 p {
     margin: 0;
+}
+
+/* 轮播图无图片提示 */
+.no-image {
+    width: 100%;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f5f5f5;
+    color: #999;
+    font-size: 14px;
+}
+
+/* 轮播图图片样式 */
+.el-carousel__item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 </style>

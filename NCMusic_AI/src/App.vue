@@ -11,10 +11,10 @@ const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
 
-// 是否显示导航栏（壁纸页面不显示）
+// 是否显示导航栏（壁纸页面和音乐播放器页面不显示）
 const showNav = ref(true)
-watch(() => route.path, (path) => {
-  showNav.value = path !== '/'
+watch(() => route.name, (name) => {
+  showNav.value = name !== 'wallpaper' && name !== 'musicplayer'
 }, { immediate: true })
 
 const searchkeyword = ref('')
