@@ -1,9 +1,16 @@
 <script setup>
 import api from '../api/index.js';
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import LazyImage from '@/components/LazyImage.vue';
-import { ElCard } from 'element-plus';
+import { ElCard, ElCarousel, ElCarouselItem } from 'element-plus';
+
+// 轮播图高度（根据宽度计算，保持 2.35:1 的宽高比）
+const carouselHeight = computed(() => {
+  // .hall-inner 宽度 980px - 左右 padding 各 20px = 940px
+  // 940 / 2.35 ≈ 400px
+  return '400px'
+})
 
 // 获取轮播图图像
 const carsouellist=ref([])
@@ -27,7 +34,7 @@ const playlists = ref([])
 
 const fetchPlayLists = async ()=>{
     try{
-        const res = await api.get('/personalized',{limit:5})
+        const res = await api.get('/personalized',{limit:10})
         playlists.value=(res.result || []).map((item)=>({
         id: item.id,
         name: item.name,
@@ -101,7 +108,7 @@ onMounted(()=>{
         <!-- 推荐歌单/歌曲/电台 -->
         <div class="hall-inner">
             <!-- 轮播图 -->
-            <el-carousel height="150px">
+            <el-carousel :height="carouselHeight">
                 <el-carousel-item v-for="(item, index) in carsouellist" :key="index">
                     <img :src="item.imgurl" alt="轮播图" v-if="item.imgurl">
                     <div v-else class="no-image">暂无轮播图图片</div>
@@ -205,15 +212,14 @@ ul {
     flex-wrap: wrap;
 }
 
-/* 1. 推荐歌单样式（4列布局） */
 .playlists {
     justify-content: space-between;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .playlists-item {
-    width: 140px;
-    margin-bottom: 30px;
+    width: 180px;
+    margin-bottom: 20px;
 }
 
 .cover-warpper {
@@ -276,16 +282,16 @@ ul {
 .songslist {
     background: #f5f5f5;
     border: 1px solid #d3d3d3;
-    margin: 20px 0 40px;
-    padding: 20px 10px;
+    margin: 20px 0 20px;
+    padding: 10px 10px;
     display: grid;
-    grid-template-columns: repeat(5, 118px);
+    grid-template-columns: repeat(5, 120px);
     justify-content: space-between;
-    gap: 10px 0; 
+    gap: 5px 0; 
 }
 
 .songslist-item {
-    width: 118px;
+    width: 158px;
     height: 150px;
     margin: 0; 
 }
@@ -293,8 +299,8 @@ ul {
 
 .songslist-cover {
     position: relative;
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border: none;
 }
 
@@ -359,15 +365,10 @@ ul {
     margin-top: 5px;
 }
 
-/* 辅助样式：隐藏多余文本 */
-p {
-    margin: 0;
-}
-
 /* 轮播图无图片提示 */
 .no-image {
     width: 100%;
-    height: 150px;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -376,10 +377,23 @@ p {
     font-size: 14px;
 }
 
+/* 轮播图容器 */
+.el-carousel {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+/* 轮播图项 */
+.el-carousel__item {
+    width: 100%;
+    height: 100%;
+}
+
 /* 轮播图图片样式 */
 .el-carousel__item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    border-radius: 4px;
 }
 </style>

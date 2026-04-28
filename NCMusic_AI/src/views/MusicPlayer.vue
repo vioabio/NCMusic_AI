@@ -4,7 +4,7 @@ import { useRoute,useRouter } from 'vue-router'
 import api from '@/api'
 import PlayModeSelector from '@/components/PlayModeSelector.vue'
 import { ElButton, ElSlider } from 'element-plus'
-import { ArrowLeft, ArrowRight, VideoPlay, VideoPause, RefreshRight,Expand } from '@element-plus/icons-vue'
+import { ArrowLeft, ArrowRight, VideoPlay, VideoPause, Expand, Sort, Eleme, RefreshRight, RefreshLeft } from '@element-plus/icons-vue'
 
 
 const route = useRoute()
@@ -28,6 +28,12 @@ const isPlaying=ref(false)
 const currentLyricIndex=ref(0) // 当前高亮的歌词行索引
 const lyricsContainerRef=ref(null) // 歌词容器引用
 
+// 音量控制
+const volume = ref(70) // 音量 0-100
+const isMuted = ref(false)
+const previousVolume = ref(70) // 用于保存静音前的音量
+const showVolumeSlider = ref(false)
+
 // 播放列表相关
 const playlist = ref([])
 const currentPlaylistIndex = ref(0)
@@ -36,9 +42,24 @@ const playlistId = ref('') // 歌单ID
 // 播放模式：0-顺序播放，1-随机播放，2-单曲循环，3-列表循环
 const playMode = ref(0)
 const playModeNames = ['顺序播放', '随机播放', '单曲循环', '列表循环']
+const modeIcons = [Sort, Eleme, RefreshRight, RefreshLeft] // 与 PlayModeSelector 一致的图标
 
 // 播放模式弹窗
 const showPlayModeModal = ref(false)
+
+// 音质选择
+const audioQuality = ref('standard') // standard, higher, exhigh, lossless, hires
+const audioQualityNames = {
+  standard: '标准音质',
+  higher: '较高音质',
+  exhigh: '极高音质',
+  lossless: '无损音质',
+  hires: 'Hi-Res音质'
+}
+const showQualityModal = ref(false)
+
+// 播放列表弹窗
+const showPlaylistModal = ref(false)
 
 // 随机播放的随机索引
 const shuffledIndices = ref([])
@@ -101,15 +122,18 @@ const fetchLyrics=async(id)=>{
 }
 
 //获取播放地址
-const fetchSongUrl=async(id)=>{
+const fetchSongUrl=async(id, keepState = false)=>{
     if(!id) return
     try{
         const res=await api.get('/song/url',{id})
         const item=(res.data || [])[0]
         audioUrl.value=item?.url || ''
-        currentTime.value=0
-        duration.value=0
-        isPlaying.value=false
+        // 如果不保持状态，则重置
+        if(!keepState){
+            currentTime.value=0
+            duration.value=0
+            isPlaying.value=false
+        }
     }catch(err){
         console.log("获取播放地址失败:",err);
         audioUrl.value=''
@@ -238,6 +262,11 @@ const playSongAtIndex=(index)=>{
             query: { id: song.id }
         })
         loadSong(song.id)
+        
+        // 自动播放
+        setTimeout(() => {
+            handleTogglePlay()
+        }, 500)
     }
 }
 
@@ -334,17 +363,6 @@ const scrollToCurrentLyric=()=>{
     })
 }
 
-const handleProgressClick = (event) =>{
-    const bar = event.currentTarget
-    const rect = bar.getBoundingClientRect()
-    const ratio = (event.clientX - rect.left) / rect.width
-    const audio = audioRef.value
-    const newTime = duration.value * ratio
-    if(!audio) return
-    audio.currentTime = newTime
-    currentTime.value = newTime
-}
-
 // 播放模式弹窗关闭回调
 const handleModeSelectorClose=()=>{
     // 如果切换到随机播放模式，生成随机索引
@@ -353,6 +371,93 @@ const handleModeSelectorClose=()=>{
     }
 }
 
+// 音量控制相关函数
+const toggleVolumeSlider = () =>{
+    showVolumeSlider.value = !showVolumeSlider.value
+}
+
+const toggleMute = () =>{
+    const audio = audioRef.value
+    if(!audio) return
+    
+    if(isMuted.value){
+        // 取消静音
+        isMuted.value = false
+        volume.value = previousVolume.value || 70
+        audio.volume = volume.value / 100
+    } else {
+        // 静音
+        isMuted.value = true
+        previousVolume.value = volume.value
+        volume.value = 0
+        audio.volume = 0
+    }
+}
+
+const handleVolumeChange = (val) =>{
+    const audio = audioRef.value
+    if(!audio) return
+    
+    volume.value = val
+    audio.volume = val / 100
+    
+    // 如果音量大于0，取消静音状态
+    if(val > 0 && isMuted.value){
+        isMuted.value = false
+    }
+}
+
+// 音质选择
+const handleQualitySelect = async (quality) =>{
+    audioQuality.value = quality
+    showQualityModal.value = false
+    
+    // 保存当前播放状态
+    const audio = audioRef.value
+    if(!audio) return
+    
+    const wasPlaying = isPlaying.value
+    const currentPlayTime = currentTime.value
+    
+    // 重新获取歌曲URL，保持状态
+    if(songId.value){
+        await fetchSongUrl(songId.value, true)
+        
+        // 恢复播放位置
+        if(audio && audioUrl.value){
+            audio.load() // 重新加载音频
+            audio.currentTime = currentPlayTime
+            
+            // 如果之前正在播放，则继续播放
+            if(wasPlaying){
+                audio.play().then(() =>{
+                    isPlaying.value = true
+                }).catch(() =>{})
+            }
+        }
+    }
+}
+
+// 播放列表相关
+const togglePlaylistModal = () =>{
+    showPlaylistModal.value = !showPlaylistModal.value
+}
+
+const handlePlaylistItemClick = (index) =>{
+    playSongAtIndex(index)
+    showPlaylistModal.value = false
+}
+
+// 获取音量图标
+const getVolumeIcon = () =>{
+    if(isMuted.value || volume.value === 0){
+        return '🔇'
+    } else if(volume.value < 50){
+        return '🔉'
+    } else {
+        return '🔊'
+    }
+}
 
 onMounted(async()=>{
     await fetchSongDetail(songId.value)
@@ -412,12 +517,79 @@ onMounted(async()=>{
             </div>
             <!-- 底部：控制区域 -->
             <div class="player-controls">
-                <div class="controls-main">
+                <div class="controls-center-group">
+                    <el-button 
+                        class="btn-circle btn-mode" 
+                        :class="{'btn-mode--active': playMode !== 0}"
+                        @click="handleTogglePlayMode" 
+                        :title="playModeNames[playMode]"
+                        circle
+                    >
+                        <el-icon><component :is="modeIcons[playMode]" /></el-icon>
+                    </el-button>
+
                     <el-button class="btn-circle" @click="handlePrevSong" title="上一首" :icon="ArrowLeft" circle />
                     <el-button class="btn-circle btm-large" @click="handleTogglePlay" :icon="isPlaying ? VideoPause : VideoPlay" circle />
                     <el-button class="btn-circle" @click="handleNextSong" title="下一首" :icon="ArrowRight" circle />
-                    <el-button class="btn-circle btn-mode" @click="handleTogglePlayMode" :title="playModeNames[playMode]" :icon="Expand" circle />
+
+                    <div class="volume-wrapper">
+                        <el-button 
+                            class="btn-circle btn-volume" 
+                            @click.stop="toggleVolumeSlider"
+                            :title="'音量调节'"
+                        >
+                            {{ getVolumeIcon() }}
+                        </el-button>
+                        <div 
+                            class="volume-popup" 
+                            v-if="showVolumeSlider"
+                            @click.stop
+                        >
+                            <el-slider 
+                                v-model="volume" 
+                                :max="100" 
+                                :step="1"
+                                vertical
+                                height="100px"
+                                @input="handleVolumeChange"
+                                class="volume-slider"
+                            />
+                            <el-button 
+                                class="btn-mute" 
+                                @click="toggleMute"
+                                :title="isMuted ? '取消静音' : '静音'"
+                            >
+                                {{ isMuted ? '🔇' : getVolumeIcon() }}
+                            </el-button>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="controls-right">
+                    <el-button 
+                        class="btn-circle btn-quality" 
+                        @click="showQualityModal = true"
+                        title="音质选择"
+                    >
+                        <el-icon><Operation /></el-icon>
+                    </el-button>
+
+                    <el-button 
+                        class="btn-circle btn-playlist" 
+                        @click="togglePlaylistModal"
+                        title="播放列表"
+                    >
+                        <el-icon><Expand /></el-icon>
+                    </el-button>
+                </div>
+
+                <div 
+                    class="volume-overlay" 
+                    v-if="showVolumeSlider"
+                    @click="showVolumeSlider = false"
+                ></div>
+
+                <!-- 进度条 -->
                 <div class="progress-warp">
                     <span class="time-label">{{ formatTime(currentTime) }}</span>
                     <el-slider 
@@ -429,6 +601,7 @@ onMounted(async()=>{
                     />
                     <span class="time-label">{{ formatTime(duration) }}</span>
                 </div>
+
                 <audio
                     :src="audioUrl"
                     v-if="audioUrl"
@@ -438,6 +611,54 @@ onMounted(async()=>{
                     @timeupdate="handleTimeUpdate"
                     @ended="handleAudioEnded"
                 ></audio>
+            </div>
+
+            <!-- 音质选择弹窗 -->
+            <div class="modal-overlay" v-if="showQualityModal" @click="showQualityModal = false">
+                <div class="modal-content quality-modal" @click.stop>
+                    <h3 class="modal-title">选择音质</h3>
+                    <div class="quality-list">
+                        <div 
+                            v-for="(name, key) in audioQualityNames"
+                            :key="key"
+                            class="quality-item"
+                            :class="{ 'quality-item--active': audioQuality === key }"
+                            @click="handleQualitySelect(key)"
+                        >
+                            <span class="quality-name">{{ name }}</span>
+                            <span class="quality-check" v-if="audioQuality === key">✓</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 播放列表弹窗 -->
+            <div class="modal-overlay" v-if="showPlaylistModal" @click="showPlaylistModal = false">
+                <div class="modal-content playlist-modal" @click.stop>
+                    <h3 class="modal-title">
+                        播放列表 ({{ playlist.length }}首)
+                        <span class="playlist-clear" @click="playlist = []">清空</span>
+                    </h3>
+                    <div class="playlist-list">
+                        <div 
+                            v-for="(song, index) in playlist"
+                            :key="song.id"
+                            class="playlist-item"
+                            :class="{ 'playlist-item--active': index === currentPlaylistIndex }"
+                            @click="handlePlaylistItemClick(index)"
+                        >
+                            <span class="playlist-item-index">{{ index + 1 }}</span>
+                            <div class="playlist-item-info">
+                                <span class="playlist-item-name">{{ song.name }}</span>
+                                <span class="playlist-item-artist">{{ song.artist }}</span>
+                            </div>
+                            <span class="playlist-item-duration" v-if="song.id === playlist[currentPlaylistIndex]?.id && isPlaying">♪</span>
+                        </div>
+                        <div v-if="playlist.length === 0" class="playlist-empty">
+                            暂无播放列表
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -667,9 +888,15 @@ onMounted(async()=>{
 
 .btn-circle.btn-mode {
     font-size: 18px;
-    background: rgba(38, 206, 138, 0.1) !important;
-    border-color: #26ce8a !important;
-    color: #26ce8a !important;
+    background: transparent;
+    border-color: #fff;
+    color: #fff;
+}
+
+.btn-circle.btn-mode--active {
+    background: rgba(38, 206, 138, 0.2);
+    border-color: #26ce8a;
+    color: #26ce8a;
 }
 
 .btn-circle:hover {
@@ -678,10 +905,336 @@ onMounted(async()=>{
 }
 
 .btn-circle.btn-mode:hover {
-    background: rgba(38, 206, 138, 0.2) !important;
+    background: rgba(38, 206, 138, 0.3) !important;
+}
+
+.btn-circle.btn-mode--active:hover {
+    background: rgba(38, 206, 138, 0.3) !important;
 }
 
 .audio-hidden {
     display: none;
+}
+
+/* 底部控制栏布局重构 */
+.player-controls {
+    height: 100px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+}
+
+/* 中间控制组：播放模式 + 播放控制 + 音量按钮（统一居中） */
+.controls-center-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 5px;
+}
+
+/* 右侧：音质、播放列表 */
+.controls-right {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+}
+
+/* 音量按钮样式 */
+.btn-volume {
+    font-size: 18px;
+}
+
+/* 音量按钮容器 */
+.volume-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
+/* 音量弹出层 - 定位到按钮正上方 */
+.volume-popup {
+    width: 50px;
+    position: absolute;
+    bottom: calc(100% + 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    z-index: 10001;
+    animation: fadeIn 0.2s ease;
+}
+
+.volume-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+}
+
+.volume-slider :deep(.el-slider__runway) {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 auto !important;
+}
+
+.volume-slider :deep(.el-slider__bar) {
+    background-color: #26ce8a !important;
+}
+
+.volume-slider :deep(.el-slider__button) {
+    width: 12px;
+    height: 12px;
+    background-color: #26ce8a !important;
+    border: 2px solid #fff !important;
+    box-shadow: none !important;
+}
+
+.btn-mute {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    width: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-mute:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* 音质按钮 */
+.btn-quality {
+    font-size: 12px !important;
+    font-weight: bold;
+    background: rgba(38, 206, 138, 0.1) !important;
+    border-color: #26ce8a !important;
+    color: #26ce8a !important;
+    width: auto !important;
+    padding: 0 12px !important;
+}
+
+.btn-quality:hover {
+    background: rgba(38, 206, 138, 0.2) !important;
+}
+
+/* 播放列表按钮 */
+.btn-playlist {
+    font-size: 18px;
+}
+
+/* 弹窗遮罩 - 毛玻璃效果 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* 弹窗内容 - 毛玻璃效果 */
+.modal-content {
+    background: rgba(42, 42, 42, 0.6);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    padding: 24px;
+    min-width: 300px;
+    max-width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+}
+
+/* 音质选择列表 */
+.quality-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.quality-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.quality-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.quality-item--active {
+    background: rgba(38, 206, 138, 0.2);
+    color: #26ce8a;
+    border: 1px solid rgba(38, 206, 138, 0.5);
+}
+
+.quality-check {
+    font-size: 18px;
+    color: #26ce8a;
+}
+
+/* 播放列表 */
+.playlist-modal {
+    min-width: 400px;
+    max-width: 500px;
+}
+
+.playlist-clear {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.playlist-clear:hover {
+    color: #fff;
+}
+
+.playlist-list {
+    max-height: 60vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.playlist-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.playlist-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.playlist-item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.playlist-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.playlist-item--active {
+    background: rgba(38, 206, 138, 0.2);
+    color: #26ce8a;
+}
+
+.playlist-item-index {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.3);
+    min-width: 24px;
+    text-align: center;
+}
+
+.playlist-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow: hidden;
+}
+
+.playlist-item-name {
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.playlist-item-artist {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.playlist-item-duration {
+    font-size: 16px;
+    color: #26ce8a;
+}
+
+.playlist-empty {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 14px;
 }
 </style>
